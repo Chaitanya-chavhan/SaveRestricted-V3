@@ -2,7 +2,6 @@ telethon
 python-dotenv
 psutil
 opencv-python-headless
-gunicorn
 devgagantools
 aiofiles
 # ggnpyro
@@ -20,4 +19,5 @@ mutagen
 yt-dlp
 requests
 cryptography
+
 
