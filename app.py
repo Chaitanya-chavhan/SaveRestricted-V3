@@ -3,16 +3,45 @@
 # See LICENSE file in the repository root for full license text.
 
 import os
-from flask import Flask, render_template
+from flask import Flask, request, render_template
+from telegram import Update, Bot
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+# Load bot token from Render environment variables
+TOKEN = os.getenv("BOT_TOKEN")
+bot = Bot(TOKEN)
 
 app = Flask(__name__)
 
+# Build telegram application
+telegram_app = Application.builder().token(TOKEN).build()
+
+# ---------- BOT COMMANDS ----------
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Bot is working! Webhook active 🚀")
+
+
+telegram_app.add_handler(CommandHandler("start", start))
+
+
+# ---------- FLASK ROUTES ----------
 @app.route("/")
 def welcome():
-    # Render the welcome page with animated "Team SPY" text
     return render_template("welcome.html")
 
+
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    data = request.get_json()
+    update = Update.de_json(data, bot)
+    telegram_app.process_update(update)
+    return "OK", 200
+
+
+# ---------- RUN APP ----------
 if __name__ == "__main__":
-    # Default to port 5000 if PORT is not set in the environment
+    telegram_app.initialize()  # Required for PTB v20 webhook mode
+
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
